@@ -17,6 +17,18 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_clicked()
 {
-    geksaiderMain();
+    // принятие значений с формы
+    std::vector<int> score {};
+    score =
+    {
+    ui->input1->value(),
+    ui->input2->value(),
+    ui->input3->value(),
+    ui->input4->value(),
+    ui->input5->value(),
+    ui->input6->value()
+    };
+
+    geksaiderMain(score);
 }
 
