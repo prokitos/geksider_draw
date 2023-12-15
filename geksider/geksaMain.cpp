@@ -1,7 +1,7 @@
 #include "geksaMain.h"
 
 
-void geksaiderMain(std::vector<int> score, int width, int height)
+void geksaiderMain(std::vector<int> score, int angleCount, int width, int height)
 {
     // создание переменных для рисования
     QPicture pi;
@@ -19,7 +19,7 @@ void geksaiderMain(std::vector<int> score, int width, int height)
     std::vector<Point> OutlineDots;
 
     // создание контуров и диагональных линий
-    createOutline(p,middleDot,OutlineDots, width, height);
+    createOutline(p,middleDot,OutlineDots, width, height, angleCount);
 
     // получение балловых значений
     std::vector<Point> outer;
@@ -85,30 +85,34 @@ void createPicture(QPicture &pi, std::vector<Point> &OutlineDots, int width, int
     l->setFixedWidth(width);
     l->setPicture(pi);
 
-    // создание надписей
-    QLabel *A = createLabel(OutlineDots[0].x - 5,OutlineDots[0].y - 26, "A", l);
-    QLabel *B = createLabel(OutlineDots[1].x + 7,OutlineDots[1].y - 12, "B", l);
-    QLabel *C = createLabel(OutlineDots[2].x + 7,OutlineDots[2].y - 15, "C", l);
-    QLabel *D = createLabel(OutlineDots[3].x - 5,OutlineDots[3].y, "D", l);
-    QLabel *E = createLabel(OutlineDots[4].x - 15,OutlineDots[4].y - 15, "E", l);
-    QLabel *F = createLabel(OutlineDots[5].x - 15,OutlineDots[5].y - 15, "F", l);
+//    // создание надписей
+//    QLabel *A = createLabel(OutlineDots[0].x - 5,OutlineDots[0].y - 26, "A", l);
+//    QLabel *B = createLabel(OutlineDots[1].x + 7,OutlineDots[1].y - 12, "B", l);
+//    QLabel *C = createLabel(OutlineDots[2].x + 7,OutlineDots[2].y - 15, "C", l);
+//    QLabel *D = createLabel(OutlineDots[3].x - 5,OutlineDots[3].y, "D", l);
+//    QLabel *E = createLabel(OutlineDots[4].x - 15,OutlineDots[4].y - 15, "E", l);
+//    QLabel *F = createLabel(OutlineDots[5].x - 15,OutlineDots[5].y - 15, "F", l);
 
-    // связь формы и надписей
-    layout->addWidget(l);
-    layout->addWidget(A);
-    layout->addWidget(B);
-    layout->addWidget(C);
-    layout->addWidget(D);
-    layout->addWidget(E);
-    layout->addWidget(F);
+//    // связь формы и надписей
+//    layout->addWidget(l);
+//    layout->addWidget(A);
+//    layout->addWidget(B);
+//    layout->addWidget(C);
+//    layout->addWidget(D);
+//    layout->addWidget(E);
+//    layout->addWidget(F);
 
     // вывод формы на экран
     l->show();
 }
 
 // рисование фигуры по точкам
-void geksaDraw(std::vector<Point> temp, std::string type, QPainter &instances)
+void geksaDraw(std::vector<Point> &temp, std::string type, QPainter &instances)
 {
+    // добавление в конце первой точки, чтобы соединиться с началом
+    temp.push_back(temp[0]);
+
+    // рисование путей к точкам
     QPainterPath path;
     path.moveTo (temp[0].x, temp[0].y);
     for(auto i : temp)
@@ -133,49 +137,55 @@ void geksaDraw(std::vector<Point> temp, std::string type, QPainter &instances)
 
 }
 
-// контур фигуры
-void createOutline(QPainter &p, Point &middleDot, std::vector<Point> &bigGeks, int width, int height)
+// функция поиска точки Х
+int searchX(int angle, int lineXLen, int middle)
 {
+    return (int)(std::cos(2 * 3.1415 * angle / 360) * lineXLen + 0.5) + middle;
+}
+// функция поиска точки Y
+int searchY(int angle, int lineYLen, int middle)
+{
+    return (int)(std::sin(2 * 3.1415 * angle / 360) * lineYLen + 0.5) + middle;
+}
 
-    // задание стартовых переменных
-    int min75Y = height / 6.6666;
-    int min100X = width / 5;
-    int min100Y = height / 5;
-    int midX = width  / 2;
-    int min175Y = min100Y + min75Y;
-    int min325Y = height - (min100Y + min75Y);
-    int min425Y = height - min75Y;
-
-    // рисование внутренних линий
-    p.drawLine(midX, min75Y, midX, min425Y);
-    p.drawLine(width - min100X, min175Y, min100X, min325Y);
-    p.drawLine(min100X, min175Y, width - min100X, min325Y);
+// контур фигуры
+void createOutline(QPainter &p, Point &middleDot, std::vector<Point> &bigGeks, int width, int height, int angleCount)
+{
+    int lineXLen = (width / 2) - (width / 6);
+    int lineYLen = (height / 2) - (height / 6);
     middleDot = {width / 2,height / 2};
 
-    // рисование контура
-    bigGeks =
+    // рисование внутренних линий
+    int angle = -90;
+    for(int i = 0; i < angleCount; i++)
     {
-        {midX,min75Y},
-        {width - min100X,min175Y},
-        {width - min100X,min325Y},
-        {midX,min425Y},
-        {min100X,min325Y},
-        {min100X,min175Y},
-        {midX,min75Y}
-    };
+        int xx = searchX(angle,lineXLen, middleDot.x);
+        int yy = searchY(angle,lineYLen, middleDot.y);
+        p.drawLine(middleDot.x, middleDot.y, xx, yy);
+        angle += (360 / angleCount);
+    }
+
+    // рисование контура
+    angle = -90;
+    for(int i = 0; i < angleCount; i++)
+    {
+        int xx = searchX(angle,lineXLen, middleDot.x);
+        int yy = searchY(angle,lineYLen, middleDot.y);
+        bigGeks.push_back({xx,yy});
+        angle += (360 / angleCount);
+    }
     geksaDraw(bigGeks,"Line",p);
 
     // рисование внутреннего контура
-    std::vector<Point> smallGeks
+    std::vector<Point> smallGeks;
+    angle = -90;
+    for(int i = 0; i < angleCount; i++)
     {
-        { (midX + middleDot.x) / 2,( min75Y + middleDot.y) / 2 },
-        { (width - min100X + middleDot.x) / 2,(min175Y + middleDot.y) / 2 },
-        { (width - min100X + middleDot.x) / 2,(min325Y + middleDot.y) / 2 },
-        { (midX + middleDot.x) / 2,(min425Y + middleDot.y) / 2 },
-        { (min100X + middleDot.x) / 2,(min325Y + middleDot.y) / 2 },
-        { (min100X + middleDot.x) / 2,(min175Y + middleDot.y) / 2 },
-        { (midX + middleDot.x) / 2,( min75Y + middleDot.y) / 2 }
-    };
+        int xx = searchX(angle,lineXLen / 2, middleDot.x);
+        int yy = searchY(angle,lineYLen / 2, middleDot.y);
+        smallGeks.push_back({xx,yy});
+        angle += (360 / angleCount);
+    }
     geksaDraw(smallGeks,"Line",p);
 
 }
