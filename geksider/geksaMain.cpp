@@ -1,23 +1,25 @@
 #include "geksaMain.h"
 
 
-void geksaiderMain(std::vector<int> score)
+void geksaiderMain(std::vector<int> score, int width, int height)
 {
     // создание переменных для рисования
     QPicture pi;
     QPainter p(&pi);
-    p.setPen(QPen(Qt::black, 2));
 
     // задание границы рисунка
-    p.drawLine(0, 0, 0, 500);
-    p.drawLine(0, 0, 500, 0);
+    p.drawLine(0, 0, 0, height);
+    p.drawLine(0, 0, width, 0);
+
+    // задать жирные контуры
+    p.setPen(QPen(Qt::black, 2));
 
     // координаты середина, и координаты контура фигуры.
     Point middleDot;
     std::vector<Point> OutlineDots;
 
     // создание контуров и диагональных линий
-    createOutline(p,middleDot,OutlineDots);
+    createOutline(p,middleDot,OutlineDots, width, height);
 
     // получение балловых значений
     std::vector<Point> outer;
@@ -28,14 +30,13 @@ void geksaiderMain(std::vector<int> score)
     p.end();
 
     // вывод картинки и надписей на форму
-    createPicture(pi, OutlineDots);
+    createPicture(pi, OutlineDots, width, height);
 
 }
 
 // перевод значений в координаты
 void cordConvert(std::vector<int> numbers, std::vector<Point> &cords, Point middle, std::vector<Point> Outliner)
 {
-    int x = 15;
     for(int i = 0; i < Outliner.size() - 1; i++)
     {
         int max = std::max(Outliner[i].x, middle.x);
@@ -62,43 +63,35 @@ void cordConvert(std::vector<int> numbers, std::vector<Point> &cords, Point midd
     cords.push_back(cords[0]);
 }
 
+// создание надписей
+QLabel *createLabel(int x, int y, std::string name, QLabel *owner)
+{
+    QLabel *temp = new QLabel(name.c_str(),owner);
+    temp->setStyleSheet("QLabel { color : red; font-size:15pt;}");
+    temp->setText(name.c_str());
+    temp->move(x,y);
+    return temp;
+}
+
 // создание формы и вывод на неё изображений и надписей
-void createPicture(QPicture &pi, std::vector<Point> &OutlineDots)
+void createPicture(QPicture &pi, std::vector<Point> &OutlineDots, int width, int height)
 {
     // создание слоя для связи формы и надписей
     QVBoxLayout *layout = new QVBoxLayout();
 
     // создание главной формы
     QLabel *l = new QLabel();
-    l->setFixedHeight(500);
-    l->setFixedWidth(500);
+    l->setFixedHeight(height);
+    l->setFixedWidth(width);
     l->setPicture(pi);
 
     // создание надписей
-    QLabel *A = new QLabel("A",l);
-    A->setStyleSheet("QLabel { color : red; font-size:15pt;}");
-    A->setText("A");
-    A->move(OutlineDots[0].x - 5,OutlineDots[0].y - 26);
-    QLabel *B = new QLabel("B",l);
-    B->setStyleSheet("QLabel { color : red; font-size:15pt;}");
-    B->setText("B");
-    B->move(OutlineDots[1].x + 7,OutlineDots[1].y - 12);
-    QLabel *C = new QLabel("C",l);
-    C->setStyleSheet("QLabel { color : red; font-size:15pt;}");
-    C->setText("C");
-    C->move(OutlineDots[2].x + 7,OutlineDots[2].y - 15);
-    QLabel *D = new QLabel("D",l);
-    D->setStyleSheet("QLabel { color : red; font-size:15pt;}");
-    D->setText("D");
-    D->move(OutlineDots[3].x - 5,OutlineDots[3].y);
-    QLabel *E = new QLabel("E",l);
-    E->setStyleSheet("QLabel { color : red; font-size:15pt;}");
-    E->setText("E");
-    E->move(OutlineDots[4].x - 15,OutlineDots[4].y - 15);
-    QLabel *F = new QLabel("F",l);
-    F->setStyleSheet("QLabel { color : red; font-size:15pt;}");
-    F->setText("F");
-    F->move(OutlineDots[5].x - 15,OutlineDots[5].y - 15);
+    QLabel *A = createLabel(OutlineDots[0].x - 5,OutlineDots[0].y - 26, "A", l);
+    QLabel *B = createLabel(OutlineDots[1].x + 7,OutlineDots[1].y - 12, "B", l);
+    QLabel *C = createLabel(OutlineDots[2].x + 7,OutlineDots[2].y - 15, "C", l);
+    QLabel *D = createLabel(OutlineDots[3].x - 5,OutlineDots[3].y, "D", l);
+    QLabel *E = createLabel(OutlineDots[4].x - 15,OutlineDots[4].y - 15, "E", l);
+    QLabel *F = createLabel(OutlineDots[5].x - 15,OutlineDots[5].y - 15, "F", l);
 
     // связь формы и надписей
     layout->addWidget(l);
@@ -132,42 +125,56 @@ void geksaDraw(std::vector<Point> temp, std::string type, QPainter &instances)
     {
         QColor temp(200, 124, 84, 70);
         instances.fillPath (path, QBrush (temp));
+
+        instances.setPen(QPen(Qt::red, 1));
+        instances.drawPath(path);
+        instances.setPen(QPen(Qt::black, 2));
     }
 
 }
 
 // контур фигуры
-void createOutline(QPainter &p, Point &middleDot, std::vector<Point> &bigGeks)
+void createOutline(QPainter &p, Point &middleDot, std::vector<Point> &bigGeks, int width, int height)
 {
+
+    // задание стартовых переменных
+    int min75Y = height / 6.6666;
+    int min100X = width / 5;
+    int min100Y = height / 5;
+    int midX = width  / 2;
+    int min175Y = min100Y + min75Y;
+    int min325Y = height - (min100Y + min75Y);
+    int min425Y = height - min75Y;
+
     // рисование внутренних линий
-    p.drawLine(250, 75, 250, 425);
-    p.drawLine(400, 175, 100, 325);
-    p.drawLine(100, 175, 400, 325);
-    middleDot = {250,250};
+    p.drawLine(midX, min75Y, midX, min425Y);
+    p.drawLine(width - min100X, min175Y, min100X, min325Y);
+    p.drawLine(min100X, min175Y, width - min100X, min325Y);
+    middleDot = {width / 2,height / 2};
 
     // рисование контура
     bigGeks =
     {
-        {250,75},
-        {400,175},
-        {400,325},
-        {250,425},
-        {100,325},
-        {100,175},
-        {250,75}
+        {midX,min75Y},
+        {width - min100X,min175Y},
+        {width - min100X,min325Y},
+        {midX,min425Y},
+        {min100X,min325Y},
+        {min100X,min175Y},
+        {midX,min75Y}
     };
     geksaDraw(bigGeks,"Line",p);
 
     // рисование внутреннего контура
     std::vector<Point> smallGeks
     {
-        { (250 + middleDot.x) / 2,( 75 + middleDot.y) / 2 },
-        { (400 + middleDot.x) / 2,(175 + middleDot.y) / 2 },
-        { (400 + middleDot.x) / 2,(325 + middleDot.y) / 2 },
-        { (250 + middleDot.x) / 2,(425 + middleDot.y) / 2 },
-        { (100 + middleDot.x) / 2,(325 + middleDot.y) / 2 },
-        { (100 + middleDot.x) / 2,(175 + middleDot.y) / 2 },
-        { (250 + middleDot.x) / 2,( 75 + middleDot.y) / 2 }
+        { (midX + middleDot.x) / 2,( min75Y + middleDot.y) / 2 },
+        { (width - min100X + middleDot.x) / 2,(min175Y + middleDot.y) / 2 },
+        { (width - min100X + middleDot.x) / 2,(min325Y + middleDot.y) / 2 },
+        { (midX + middleDot.x) / 2,(min425Y + middleDot.y) / 2 },
+        { (min100X + middleDot.x) / 2,(min325Y + middleDot.y) / 2 },
+        { (min100X + middleDot.x) / 2,(min175Y + middleDot.y) / 2 },
+        { (midX + middleDot.x) / 2,( min75Y + middleDot.y) / 2 }
     };
     geksaDraw(smallGeks,"Line",p);
 

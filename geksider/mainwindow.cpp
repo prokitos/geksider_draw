@@ -28,7 +28,9 @@ void MainWindow::on_pushButton_clicked()
     ui->input5->value(),
     ui->input6->value()
     };
+    int heigh = ui->inputH->value();
+    int width = ui->inputW->value();
 
-    geksaiderMain(score);
+    geksaiderMain(score, width, heigh);
 }
 
