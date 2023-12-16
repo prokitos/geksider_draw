@@ -18,15 +18,19 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked()
 {
     // принятие значений с формы
-    QString temp = ui->inputScore->text();
-    std::stringstream tempString(temp.toStdString());
-    std::vector<int> score(std::istream_iterator<int>(tempString),{});
-
-    int angleCount = ui->inputAngle->value();
+    std::vector<int> score {};
+    score =
+    {
+    ui->input1->value(),
+    ui->input2->value(),
+    ui->input3->value(),
+    ui->input4->value(),
+    ui->input5->value(),
+    ui->input6->value()
+    };
     int heigh = ui->inputH->value();
     int width = ui->inputW->value();
 
-    // Добавить преобразование при строковых элемента. Если элементов в векторе меньше, то добавить 5
-    geksaiderMain(score, angleCount, width, heigh);
+    geksaiderMain(score, width, heigh);
 }
 
